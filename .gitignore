@@ -6,6 +6,7 @@
 frames/*.jpg
 *.mov
 *.mp[34]
+.idea
 
 # User-specific stuff
 .idea/**/workspace.xml

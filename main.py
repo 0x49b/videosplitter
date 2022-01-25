@@ -1,24 +1,39 @@
 from tqdm import tqdm
 import cv2
 import os
+import typer
+import mimetypes
+
+app = typer.Typer()
 
 
-def split_video(source_path, output_path=os.path.join(os.getcwd(), 'frames')):
-    capture = cv2.VideoCapture(source_path)
+@app.command()
+def split(source_path: str, output_path=os.path.join(os.getcwd(), 'frames')):
+    if not os.path.exists(source_path):
+        message = typer.style("The supplied argument is not an existing path to a file", fg=typer.colors.RED, bold=True)
+        typer.echo(message)
+        return
 
-    num_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+    elif not mimetypes.guess_type(source_path)[0].startswith('video'):
+        message = typer.style("The supplied argument is not a video format", fg=typer.colors.RED, bold=True)
+        typer.echo(message)
+        return
 
-    for i in tqdm(range(num_frames), desc="Writing frames ", unit=' frames'):
-        success, frame = capture.read()
-        if success:
-            framename = "frame_%s.jpg" % i
-            path = os.path.join(output_path, framename)
-            cv2.imwrite(path, frame)
+    else:
+        typer.echo("starting with video splitting")
+        capture = cv2.VideoCapture(source_path)
+        num_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    capture.release()
+        for i in tqdm(range(num_frames), desc="Writing frames ", unit=' frames'):
+            success, frame = capture.read()
+            if success:
+                framename = "frame_%s.jpg" % i
+                path = os.path.join(output_path, framename)
+                cv2.imwrite(path, frame)
+
+        capture.release()
+        typer.echo("finished splitting")
 
 
 if __name__ == "__main__":
-    print("starting with video splitting")
-    split_video(os.path.join(os.getcwd(), 'IMG_5217.MOV'))
-    print("finished splitting, find the frames here: %s" % os.path.join(os.getcwd(), 'frames'))
+    app()
